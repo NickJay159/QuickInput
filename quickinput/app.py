@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from dataclasses import replace
 from pathlib import Path
 
 from .qt_bootstrap import bootstrap_qt_dlls
@@ -25,7 +24,6 @@ from .paths import (
     settings_path,
     user_phrase_path,
 )
-from .phrase_manager import PhraseManagerDialog
 from .phrase_store import Phrase, PhraseStore, PhraseStoreError
 from .popup import PhrasePopup
 from .settings import AppSettings, load_settings
@@ -85,7 +83,6 @@ class QuickInputRuntime(QObject):
             self.translator,
         )
         self.tray.show_requested.connect(self.show_popup)
-        self.tray.manage_requested.connect(self.manage_phrases)
         self.tray.settings_requested.connect(self.configure_settings)
         self.tray.open_log_requested.connect(self.open_log_dir)
         self.tray.quit_requested.connect(self.quit)
@@ -94,17 +91,7 @@ class QuickInputRuntime(QObject):
         if not QSystemTrayIcon.isSystemTrayAvailable():
             self.logger.warning("当前系统未报告可用系统托盘")
 
-        self.hotkey = HotkeyService(
-            modifiers=self.settings.hotkey_modifiers,
-            virtual_key=self.settings.hotkey_virtual_key,
-            logger=logging.getLogger("quickinput.hotkey"),
-        )
-        self.hotkey.activated.connect(self.toggle_popup)
-        self.hotkey.failed.connect(self._on_hotkey_failed)
-        self.hotkey.registered.connect(
-            lambda: self.logger.info("热键 %s 可用", self.settings.hotkey_label)
-        )
-        self.hotkey.start()
+        self._start_hotkey()
 
         self.logger.info("QuickInput %s 已启动", __version__)
         return True
@@ -145,13 +132,27 @@ class QuickInputRuntime(QObject):
                 self.translator.t("app.loaded_count", count=len(self.phrases)),
             )
 
-    def manage_phrases(self) -> None:
-        dialog = PhraseManagerDialog(self.phrases, translator=self.translator)
+    def configure_settings(self, initial_tab: str = "preferences") -> None:
+        if not self.settings:
+            return
+        dialog = SettingsDialog(
+            self.settings,
+            self.translator,
+            self.phrases,
+            initial_tab=initial_tab,
+        )
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
 
+        updated = dialog.updated_settings()
         phrases = dialog.phrases()
+        hotkey_changed = (
+            updated.hotkey_modifiers != self.settings.hotkey_modifiers
+            or updated.hotkey_virtual_key != self.settings.hotkey_virtual_key
+        )
+
         try:
+            save_settings(settings_path(), updated)
             PhraseStore(user_phrase_path()).save(phrases)
         except PhraseStoreError as exc:
             self.logger.error("保存文本失败: %s", exc)
@@ -163,7 +164,7 @@ class QuickInputRuntime(QObject):
             QMessageBox.warning(None, "QuickInput", str(exc))
             return
         except OSError as exc:
-            self.logger.error("保存文本失败: %s", exc)
+            self.logger.error("保存设置失败: %s", exc)
             if self.tray:
                 self.tray.show_message(
                     "QuickInput",
@@ -176,27 +177,12 @@ class QuickInputRuntime(QObject):
             )
             return
 
+        self.settings = updated
         self.phrases = phrases
+        self.translator = Translator(updated.ui_language)
         if self.popup:
             self.popup.set_phrases(self.phrases)
-        if self.tray:
-            self.tray.show_message(
-                "QuickInput",
-                self.translator.t("app.saved_count", count=len(self.phrases)),
-            )
-
-    def configure_settings(self) -> None:
-        if not self.settings:
-            return
-        dialog = SettingsDialog(self.settings, self.translator)
-        if dialog.exec() != QDialog.DialogCode.Accepted:
-            return
-
-        updated = replace(self.settings, ui_language=dialog.selected_language())
-        save_settings(settings_path(), updated)
-        self.settings = updated
-        self.translator = Translator(updated.ui_language)
-        self._apply_language()
+        self._apply_runtime_settings(hotkey_changed=hotkey_changed)
         if self.tray:
             self.tray.show_message("QuickInput", self.translator.t("settings.saved"))
 
@@ -248,13 +234,36 @@ class QuickInputRuntime(QObject):
                 message,
             )
 
-    def _apply_language(self) -> None:
+    def _start_hotkey(self) -> None:
+        if not self.settings:
+            return
+        self.hotkey = HotkeyService(
+            modifiers=self.settings.hotkey_modifiers,
+            virtual_key=self.settings.hotkey_virtual_key,
+            logger=logging.getLogger("quickinput.hotkey"),
+        )
+        self.hotkey.activated.connect(self.toggle_popup)
+        self.hotkey.failed.connect(self._on_hotkey_failed)
+        self.hotkey.registered.connect(
+            lambda: self.logger.info("热键 %s 可用", self.settings.hotkey_label)
+        )
+        self.hotkey.start()
+
+    def _restart_hotkey(self) -> None:
+        if self.hotkey:
+            self.hotkey.stop()
+            self.hotkey = None
+        self._start_hotkey()
+
+    def _apply_runtime_settings(self, hotkey_changed: bool = False) -> None:
         if not self.settings:
             return
         if self.popup:
-            self.popup.apply_language(self.translator, self.settings)
+            self.popup.apply_settings(self.translator, self.settings)
         if self.tray:
             self.tray.retranslate(self.translator, self.settings.hotkey_label)
+        if hotkey_changed:
+            self._restart_hotkey()
 
     def _open_path(self, path: Path) -> None:
         try:

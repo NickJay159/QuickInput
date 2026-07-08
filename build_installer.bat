@@ -2,7 +2,7 @@
 setlocal
 chcp 65001 >nul
 
-set "APP_VERSION=1.0.1"
+set "APP_VERSION=1.1.0"
 set "SETUP_EXE=dist\QuickInput-%APP_VERSION%-setup.exe"
 
 echo Preparing QuickInput %APP_VERSION% release build...

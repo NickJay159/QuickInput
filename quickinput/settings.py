@@ -4,23 +4,28 @@ import configparser
 from dataclasses import dataclass
 from pathlib import Path
 
+from .appearance import DEFAULT_THEME, normalize_theme
+from .hotkey_config import (
+    DEFAULT_HOTKEY_LABEL,
+    DEFAULT_HOTKEY_MODIFIERS,
+    DEFAULT_HOTKEY_VIRTUAL_KEY,
+    format_hotkey_label,
+    normalize_hotkey_modifiers,
+)
 from .i18n import DEFAULT_LANGUAGE, normalize_language
-
-MOD_CONTROL = 0x0002
-MOD_NOREPEAT = 0x4000
-VK_OEM_4 = 0xDB
 
 
 @dataclass(frozen=True)
 class AppSettings:
-    hotkey_label: str = "Ctrl+["
-    hotkey_modifiers: int = MOD_CONTROL | MOD_NOREPEAT
-    hotkey_virtual_key: int = VK_OEM_4
+    hotkey_label: str = DEFAULT_HOTKEY_LABEL
+    hotkey_modifiers: int = DEFAULT_HOTKEY_MODIFIERS
+    hotkey_virtual_key: int = DEFAULT_HOTKEY_VIRTUAL_KEY
     popup_width: int = 520
     popup_height: int = 560
     paste_delay_ms: int = 120
     clipboard_restore_delay_ms: int = 1000
     ui_language: str = DEFAULT_LANGUAGE
+    ui_theme: str = DEFAULT_THEME
 
 
 def load_settings(path: Path) -> AppSettings:
@@ -33,14 +38,18 @@ def load_settings(path: Path) -> AppSettings:
     parser.read(path, encoding="utf-8-sig")
 
     defaults = AppSettings()
-    return AppSettings(
-        hotkey_label=parser.get("hotkey", "label", fallback=defaults.hotkey_label),
-        hotkey_modifiers=parser.getint(
+    hotkey_modifiers = normalize_hotkey_modifiers(
+        parser.getint(
             "hotkey", "modifiers", fallback=defaults.hotkey_modifiers
-        ),
-        hotkey_virtual_key=parser.getint(
-            "hotkey", "virtual_key", fallback=defaults.hotkey_virtual_key
-        ),
+        )
+    )
+    hotkey_virtual_key = parser.getint(
+        "hotkey", "virtual_key", fallback=defaults.hotkey_virtual_key
+    )
+    return AppSettings(
+        hotkey_label=format_hotkey_label(hotkey_modifiers, hotkey_virtual_key),
+        hotkey_modifiers=hotkey_modifiers,
+        hotkey_virtual_key=hotkey_virtual_key,
         popup_width=max(
             360, parser.getint("popup", "width", fallback=defaults.popup_width)
         ),
@@ -61,6 +70,7 @@ def load_settings(path: Path) -> AppSettings:
         ui_language=normalize_language(
             parser.get("ui", "language", fallback=defaults.ui_language)
         ),
+        ui_theme=normalize_theme(parser.get("ui", "theme", fallback=defaults.ui_theme)),
     )
 
 
@@ -68,8 +78,11 @@ def save_settings(path: Path, settings: AppSettings) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     parser = configparser.ConfigParser()
     parser["hotkey"] = {
-        "label": settings.hotkey_label,
-        "modifiers": str(settings.hotkey_modifiers),
+        "label": format_hotkey_label(
+            settings.hotkey_modifiers,
+            settings.hotkey_virtual_key,
+        ),
+        "modifiers": str(normalize_hotkey_modifiers(settings.hotkey_modifiers)),
         "virtual_key": str(settings.hotkey_virtual_key),
     }
     parser["popup"] = {
@@ -82,6 +95,7 @@ def save_settings(path: Path, settings: AppSettings) -> None:
     }
     parser["ui"] = {
         "language": normalize_language(settings.ui_language),
+        "theme": normalize_theme(settings.ui_theme),
     }
     with path.open("w", encoding="utf-8") as file:
         parser.write(file)

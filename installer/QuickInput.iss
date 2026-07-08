@@ -1,5 +1,5 @@
 #define MyAppName "QuickInput"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "QuickInput"
 #define MyAppExeName "QuickInput.exe"
 #define MyAppId "{{7F5DE671-BC23-4D78-9098-929A6DE7660D}"
@@ -77,6 +77,7 @@ begin
   SetIniString('paste', 'delay_ms', '120', SettingsFile);
   SetIniString('paste', 'clipboard_restore_delay_ms', '1000', SettingsFile);
   SetIniString('ui', 'language', SelectedAppLanguage(), SettingsFile);
+  SetIniString('ui', 'theme', 'system', SettingsFile);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -97,4 +98,6 @@ begin
 
   if GetIniString('ui', 'language', '', SettingsFile) = '' then
     SetIniString('ui', 'language', SelectedAppLanguage(), SettingsFile);
+  if GetIniString('ui', 'theme', '', SettingsFile) = '' then
+    SetIniString('ui', 'theme', 'system', SettingsFile);
 end;

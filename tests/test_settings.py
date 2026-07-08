@@ -24,6 +24,7 @@ class SettingsTest(unittest.TestCase):
                 popup_width=640,
                 popup_height=720,
                 ui_language="en_US",
+                ui_theme="dark",
             )
 
             save_settings(path, expected)
@@ -32,6 +33,7 @@ class SettingsTest(unittest.TestCase):
             self.assertEqual(actual.popup_width, 640)
             self.assertEqual(actual.popup_height, 720)
             self.assertEqual(actual.ui_language, "en_US")
+            self.assertEqual(actual.ui_theme, "dark")
 
     def test_load_settings_normalizes_language_alias(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -50,6 +52,15 @@ class SettingsTest(unittest.TestCase):
             settings = load_settings(path)
 
             self.assertEqual(settings.hotkey_label, "Ctrl+[")
+
+    def test_load_settings_normalizes_theme_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "settings.ini"
+            path.write_text("[ui]\ntheme = auto\n", encoding="utf-8")
+
+            settings = load_settings(path)
+
+            self.assertEqual(settings.ui_theme, "system")
 
 
 if __name__ == "__main__":

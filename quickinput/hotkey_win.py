@@ -16,6 +16,38 @@ WM_HOTKEY = 0x0312
 WM_QUIT = 0x0012
 
 
+def is_hotkey_available(
+    modifiers: int,
+    virtual_key: int,
+    hotkey_id: int = 0x5151,
+) -> bool:
+    if os.name != "nt":
+        return True
+
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    user32.RegisterHotKey.argtypes = [
+        wintypes.HWND,
+        ctypes.c_int,
+        wintypes.UINT,
+        wintypes.UINT,
+    ]
+    user32.RegisterHotKey.restype = wintypes.BOOL
+    user32.UnregisterHotKey.argtypes = [wintypes.HWND, ctypes.c_int]
+
+    ctypes.set_last_error(0)
+    registered = user32.RegisterHotKey(
+        None,
+        hotkey_id,
+        int(modifiers),
+        int(virtual_key),
+    )
+    if not registered:
+        return False
+
+    user32.UnregisterHotKey(None, hotkey_id)
+    return True
+
+
 class POINT(ctypes.Structure):
     _fields_ = [
         ("x", wintypes.LONG),

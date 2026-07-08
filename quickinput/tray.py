@@ -15,7 +15,6 @@ from .i18n import Translator
 
 class TrayController(QObject):
     show_requested = Signal()
-    manage_requested = Signal()
     settings_requested = Signal()
     open_log_requested = Signal()
     quit_requested = Signal()
@@ -54,8 +53,6 @@ class TrayController(QObject):
 
         show_action = QAction(self.translator.t("tray.show_window"), menu)
         show_action.triggered.connect(self.show_requested.emit)
-        manage_action = QAction(self.translator.t("tray.manage_text"), menu)
-        manage_action.triggered.connect(self.manage_requested.emit)
         settings_action = QAction(self.translator.t("tray.settings"), menu)
         settings_action.triggered.connect(self.settings_requested.emit)
         open_log_action = QAction(self.translator.t("tray.open_logs"), menu)
@@ -67,7 +64,6 @@ class TrayController(QObject):
         menu.addAction(hotkey)
         menu.addSeparator()
         menu.addAction(show_action)
-        menu.addAction(manage_action)
         menu.addAction(settings_action)
         menu.addAction(open_log_action)
         menu.addSeparator()

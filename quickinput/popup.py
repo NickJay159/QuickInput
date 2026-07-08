@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (  # noqa: E402
 )
 
 from .phrase_store import Phrase
+from .appearance import effective_theme
 from .i18n import Translator
 from .settings import AppSettings
 
@@ -106,6 +107,7 @@ class PhrasePopup(QDialog):
         self._hotkey_label: QLabel | None = None
         self._footer_label: QLabel | None = None
         self._key_hint_label: QLabel | None = None
+        self._shadow: QGraphicsDropShadowEffect | None = None
         self._show_animation: QParallelAnimationGroup | None = None
         self._hide_animation: QParallelAnimationGroup | None = None
         self._hide_target_pos = QPoint()
@@ -131,11 +133,11 @@ class PhrasePopup(QDialog):
 
         surface = QFrame()
         surface.setObjectName("popupSurface")
-        shadow = QGraphicsDropShadowEffect(surface)
-        shadow.setBlurRadius(44)
-        shadow.setOffset(0, 18)
-        shadow.setColor(QColor(20, 35, 42, 56))
-        surface.setGraphicsEffect(shadow)
+        self._shadow = QGraphicsDropShadowEffect(surface)
+        self._shadow.setBlurRadius(44)
+        self._shadow.setOffset(0, 18)
+        self._shadow.setColor(QColor(20, 35, 42, 56))
+        surface.setGraphicsEffect(self._shadow)
 
         surface_layout = QVBoxLayout(surface)
         surface_layout.setContentsMargins(22, 22, 22, 18)
@@ -337,6 +339,173 @@ class PhrasePopup(QDialog):
             }
             """
         )
+        self._apply_style()
+
+    def _apply_style(self) -> None:
+        dark = effective_theme(self.settings.ui_theme) == "dark"
+        if self._shadow:
+            self._shadow.setColor(QColor(0, 0, 0, 92 if dark else 56))
+
+        if dark:
+            colors = {
+                "surface": "rgba(28, 34, 38, 238)",
+                "surface_border": "rgba(255, 255, 255, 34)",
+                "title": "#edf3f1",
+                "muted": "#a8b4b9",
+                "badge_bg": "#26b8ad",
+                "badge_text": "#ffffff",
+                "status_bg": "#123f3d",
+                "status_border": "rgba(38, 184, 173, 70)",
+                "status_text": "#8ee1d9",
+                "row_bg": "rgba(35, 43, 48, 222)",
+                "row_hover": "#263238",
+                "row_selected": "#202a2e",
+                "key_bg": "#123f3d",
+                "key_text": "#8ee1d9",
+                "scroll": "rgba(255, 255, 255, 52)",
+            }
+        else:
+            colors = {
+                "surface": "rgba(255, 255, 255, 232)",
+                "surface_border": "rgba(255, 255, 255, 236)",
+                "title": "#172026",
+                "muted": "#4f5f68",
+                "badge_bg": "#172026",
+                "badge_text": "#ffffff",
+                "status_bg": "#e1f5f2",
+                "status_border": "rgba(15, 143, 134, 46)",
+                "status_text": "#08746d",
+                "row_bg": "rgba(255, 255, 255, 206)",
+                "row_hover": "#f3fbfa",
+                "row_selected": "#ffffff",
+                "key_bg": "#e1f5f2",
+                "key_text": "#08746d",
+                "scroll": "rgba(23, 32, 38, 52)",
+            }
+
+        self.setStyleSheet(
+            f"""
+            QDialog {{
+                background: transparent;
+                color: {colors["title"]};
+                font-family: "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", Arial;
+                font-size: 13px;
+            }}
+            QFrame#popupSurface {{
+                background: {colors["surface"]};
+                border: 1px solid {colors["surface_border"]};
+                border-radius: 18px;
+            }}
+            QLabel#title {{
+                color: {colors["title"]};
+                font-size: 24px;
+                font-weight: 800;
+            }}
+            QLabel#subtitle {{
+                color: {colors["muted"]};
+                font-size: 12px;
+            }}
+            QLabel#hotkeyBadge {{
+                background: {colors["badge_bg"]};
+                color: {colors["badge_text"]};
+                border-radius: 10px;
+                font-size: 12px;
+                font-weight: 800;
+                padding: 8px 12px;
+            }}
+            QFrame#statusStrip {{
+                min-height: 38px;
+                max-height: 38px;
+                background: {colors["status_bg"]};
+                border: 1px solid {colors["status_border"]};
+                border-radius: 11px;
+            }}
+            QLabel#statusText {{
+                color: {colors["status_text"]};
+                font-size: 12px;
+                font-weight: 700;
+            }}
+            QLabel#countText {{
+                color: {colors["muted"]};
+                font-size: 12px;
+                font-weight: 600;
+            }}
+            QLabel#footer,
+            QLabel#keyHint {{
+                color: {colors["muted"]};
+                font-size: 12px;
+                padding-top: 2px;
+            }}
+            QLabel#keyHint {{
+                font-weight: 700;
+            }}
+            QLabel#emptyState {{
+                color: {colors["muted"]};
+                padding: 18px;
+            }}
+            QWidget#phraseContainer {{
+                background: transparent;
+            }}
+            QFrame#phraseRow {{
+                min-height: 56px;
+                background: {colors["row_bg"]};
+                border: 1px solid rgba(34, 51, 59, 31);
+                border-radius: 12px;
+            }}
+            QFrame#phraseRow:hover {{
+                background: {colors["row_hover"]};
+                border-color: rgba(15, 143, 134, 92);
+            }}
+            QFrame#phraseRow[selected="true"] {{
+                background: {colors["row_selected"]};
+                border-left: 4px solid #0f8f86;
+                border-top: 1px solid rgba(15, 143, 134, 118);
+                border-right: 1px solid rgba(15, 143, 134, 118);
+                border-bottom: 1px solid rgba(15, 143, 134, 118);
+            }}
+            QFrame#phraseRow[selected="true"] QLabel#keyBadge {{
+                background: #0f8f86;
+                color: #ffffff;
+                border-color: #0f8f86;
+            }}
+            QLabel#keyBadge {{
+                background: {colors["key_bg"]};
+                color: {colors["key_text"]};
+                border: 1px solid rgba(15, 143, 134, 46);
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 800;
+            }}
+            QLabel#phraseText {{
+                color: {colors["title"]};
+                line-height: 20px;
+            }}
+            QLabel#rowArrow {{
+                color: {colors["muted"]};
+                font-size: 22px;
+                font-weight: 400;
+            }}
+            QScrollArea#phraseScroll {{
+                background: transparent;
+            }}
+            QScrollBar:vertical {{
+                background: transparent;
+                width: 9px;
+                margin: 2px 0 2px 0;
+            }}
+            QScrollBar::handle:vertical {{
+                background: {colors["scroll"]};
+                border-radius: 4px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: rgba(15, 143, 134, 92);
+            }}
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {{
+                height: 0;
+            }}
+            """
+        )
 
     def set_phrases(self, phrases: list[Phrase]) -> None:
         self._phrases = phrases
@@ -367,7 +536,7 @@ class PhrasePopup(QDialog):
                 self.translator.t("popup.ready" if phrases else "popup.empty_status")
             )
 
-    def apply_language(
+    def apply_settings(
         self,
         translator: Translator,
         settings: AppSettings | None = None,
@@ -386,8 +555,17 @@ class PhrasePopup(QDialog):
         if self._key_hint_label:
             self._key_hint_label.setText(self.translator.t("popup.key_hint"))
         self.set_phrases(self._phrases)
+        self._apply_style()
+
+    def apply_language(
+        self,
+        translator: Translator,
+        settings: AppSettings | None = None,
+    ) -> None:
+        self.apply_settings(translator, settings)
 
     def show_centered(self) -> None:
+        self._apply_style()
         screen = QGuiApplication.screenAt(QCursor.pos())
         screen = screen or QGuiApplication.primaryScreen()
         if screen is None:

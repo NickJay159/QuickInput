@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">QuickInput icon</title>
+  <desc id="desc">A minimal quick text input mark with phrase lines and a cursor.</desc>
+  <rect x="28" y="28" width="200" height="200" rx="52" fill="#111827"/>
+  <rect x="58" y="74" width="140" height="108" rx="24" fill="#F8FAFC"/>
+  <path d="M84 106H132" stroke="#111827" stroke-width="14" stroke-linecap="round"/>
+  <path d="M84 136H140" stroke="#111827" stroke-width="14" stroke-linecap="round"/>
+  <rect x="158" y="94" width="13" height="64" rx="6.5" fill="#2DD4BF"/>
+  <path d="M166 82V70" stroke="#2DD4BF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M166 182V170" stroke="#2DD4BF" stroke-width="8" stroke-linecap="round"/>
+</svg>
