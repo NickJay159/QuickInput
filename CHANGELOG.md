@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.1 - 2026-07-08
+
+### 中文
+
+- 修复 `settings.ini` 带 UTF-8 BOM 时启动崩溃的问题。
+- 新增回归测试，覆盖带 BOM 的设置文件读取。
+
+### English
+
+- Fixed startup crash when `settings.ini` contains a UTF-8 BOM.
+- Added a regression test for reading BOM-prefixed settings files.
+
 ## v1.0.0 - 2026-07-08
 
 ### 中文

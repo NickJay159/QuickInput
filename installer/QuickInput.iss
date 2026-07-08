@@ -1,5 +1,5 @@
 #define MyAppName "QuickInput"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "QuickInput"
 #define MyAppExeName "QuickInput.exe"
 #define MyAppId "{{7F5DE671-BC23-4D78-9098-929A6DE7660D}"

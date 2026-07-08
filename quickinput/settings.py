@@ -30,7 +30,7 @@ def load_settings(path: Path) -> AppSettings:
         return settings
 
     parser = configparser.ConfigParser()
-    parser.read(path, encoding="utf-8")
+    parser.read(path, encoding="utf-8-sig")
 
     defaults = AppSettings()
     return AppSettings(

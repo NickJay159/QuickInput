@@ -158,7 +158,7 @@ build_installer.bat
 构建成功后生成：
 
 ```text
-dist\QuickInput-1.0.0-setup.exe
+dist\QuickInput-1.0.1-setup.exe
 ```
 
 安装器支持 English / 简体中文安装语言选择，并会把所选语言写入用户级 `settings.ini`，应用首次启动时使用对应显示语言。
@@ -345,7 +345,7 @@ build_installer.bat
 A successful build creates:
 
 ```text
-dist\QuickInput-1.0.0-setup.exe
+dist\QuickInput-1.0.1-setup.exe
 ```
 
 The installer supports English and Simplified Chinese setup languages. It writes the selected language to the user-level `settings.ini`, so the app starts in the chosen display language.

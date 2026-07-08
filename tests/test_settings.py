@@ -42,6 +42,15 @@ class SettingsTest(unittest.TestCase):
 
             self.assertEqual(settings.ui_language, "en_US")
 
+    def test_load_settings_accepts_utf8_bom(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "settings.ini"
+            path.write_text("[hotkey]\nlabel = Ctrl+[\n", encoding="utf-8-sig")
+
+            settings = load_settings(path)
+
+            self.assertEqual(settings.hotkey_label, "Ctrl+[")
+
 
 if __name__ == "__main__":
     unittest.main()
