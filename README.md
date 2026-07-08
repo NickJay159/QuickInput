@@ -1,192 +1,405 @@
-# QuickInput - 快速输入工具
+# QuickInput
 
-一个现代化的快速文本输入工具，通过热键快速弹出选择窗口，支持预设文本的快速输入。
+[中文](#中文文档) | [English](#english-documentation)
 
-## 🚀 功能特点
+## 中文文档
 
-- **快捷热键**: 使用 `Ctrl+[` 快速调出输入窗口
-- **现代化界面**: 美观的深色主题界面设计
-- **系统托盘**: 后台运行，通过系统托盘管理
-- **智能焦点**: 自动获取键盘焦点，无需手动点击
-- **快速输入**: 按数字键1-9快速输入预设文本
-- **可定制**: 通过CSV文件轻松配置文本内容
+QuickInput 是一个 Windows 托盘快速输入工具。程序常驻后台，通过全局热键 `Ctrl+[` 弹出短语选择窗口，按配置中的快捷键即可把文本粘贴到当前光标位置。
 
-## 📸 界面预览
+## 功能
 
-- **弹窗界面**: 现代化的深色主题，清晰的按键提示
-- **悬停效果**: 鼠标悬停时的高亮显示
-- **系统托盘**: 简洁的托盘图标和菜单
+- 全局热键 `Ctrl+[` 唤起或隐藏快捷输入弹窗。
+- 系统托盘常驻，支持显示窗口、管理文本、设置、打开日志目录和退出。
+- 应用内“管理文本”窗口支持新增、删除、修改和调整顺序。
+- 应用内“设置”窗口支持在简体中文和英文显示之间切换。
+- 弹窗内可用 `1-9` 等配置键快速选择，也可鼠标点击候选项。
+- 长文本自动换行，候选项区域支持滚动。
+- 粘贴后延迟恢复剪贴板；如果用户在恢复前复制了新内容，不会覆盖用户的新剪贴板内容。
+- 使用 Windows 互斥锁防重复启动。
+- 日志写入用户数据目录，便于排查热键、托盘和粘贴问题。
 
-## 🛠️ 安装指南
+## 运行要求
 
-### 1. 环境要求
+- Windows
+- Python 3.10+
 
-- Python 3.7+
-- Windows 操作系统
-
-### 2. 安装依赖
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. 运行程序
+开发运行：
 
 ```bash
+python -m pip install -r requirements.txt
 python main.py
 ```
 
-## 📝 使用说明
+快速启动烟测：
 
-### 基本使用
+```bash
+python main.py --smoke-test
+```
 
-1. **启动程序**: 双击运行 `main.py` 或在命令行中执行
-2. **后台运行**: 程序会在系统托盘中显示图标
-3. **调出窗口**: 使用热键 `Ctrl+[` 调出快速输入窗口
-4. **选择文本**: 按数字键 1-9 选择对应的预设文本
-5. **自动输入**: 程序会自动输入选中的文本到当前光标位置
+## 项目结构
 
-### 自定义文本内容
+```text
+quickinput/
+  app.py                 # 应用生命周期、托盘/弹窗/热键/剪贴板协同
+  paths.py               # 资源路径、用户数据目录、内置默认文本初始化
+  settings.py            # settings.ini 读写和默认配置
+  phrase_store.py        # text.csv 加载、保存和校验
+  phrase_manager.py      # PySide6 文本管理窗口
+  popup.py               # PySide6 快捷输入弹窗
+  tray.py                # 系统托盘菜单
+  settings_dialog.py     # PySide6 设置窗口
+  i18n.py                # 中文/英文显示文案
+  hotkey_win.py          # Windows RegisterHotKey 全局热键服务
+  clipboard_service.py   # pyperclip + SendInput 粘贴和剪贴板恢复
+  single_instance.py     # Windows 单实例保护
+  qt_bootstrap.py        # PySide6 / shiboken6 DLL 搜索路径初始化
+  logging_setup.py       # 文件日志和控制台日志配置
 
-编辑 `text.csv` 文件来自定义你的预设文本：
+tests/
+  test_paths.py
+  test_phrase_store.py
+  test_phrase_manager.py
+  test_settings.py
+  test_settings_dialog.py
+  test_popup.py
+```
+
+根目录的 `main.py` 是启动入口，实际逻辑位于 `quickinput.main` 和 `quickinput.app`。
+
+## 技术架构
+
+当前版本已从旧的 Tkinter / pystray / pynput 组合迁移到以下实现：
+
+- `PySide6`：主事件循环、快捷输入弹窗、文本管理窗口和系统托盘。
+- Windows `RegisterHotKey`：系统级全局热键，独立线程监听 `WM_HOTKEY`。
+- `pyperclip` + Win32 `SendInput`：写入剪贴板并模拟 `Ctrl+V`。
+- `PyInstaller`：生成 Windows 单文件 exe。
+
+## 用户数据
+
+应用运行时会把可变数据写入用户目录：
+
+```text
+%APPDATA%\QuickInput\
+  text.csv
+  settings.ini
+  logs\app.log
+```
+
+也可以用环境变量覆盖数据目录，方便测试或隔离运行：
+
+```powershell
+$env:QUICKINPUT_DATA_DIR="D:\tmp\quickinput-data"
+python main.py
+```
+
+`%APPDATA%\QuickInput\text.csv` 是实际运行时使用的短语文件。首次启动且该文件不存在时，程序会直接写入代码内置的默认 CSV 内容。
+
+源码目录和 `dist` 目录不再携带初始化用 `text.csv`。用户数据目录里的 `text.csv` 才是长期数据源。
+
+## 文本管理
+
+推荐通过托盘菜单进入“管理文本”窗口进行日常维护。保存后，快捷输入弹窗会立即使用新的文本列表。
+
+CSV 文件格式如下：
 
 ```csv
 key,text
-1,Welcome to our website!
-2,Thank you for your visit.
-3,Please contact us at: contact@example.com
-4,Check out our latest blog post.
-5,Subscribe to our newsletter for updates.
-6,Learn more about our services here.
-7,Follow us on social media.
-8,Visit our FAQ page for more information.
-9,Click here to see our latest offers.
+1,Hello
+2,"Long text with comma, newline, or other content"
 ```
 
-### 快捷键
+规则：
 
-- `Ctrl+[`: 调出快速输入窗口
-- `1-9`: 选择对应的预设文本
-- `ESC`: 关闭弹窗窗口
+- 必须包含 `key` 和 `text` 两列。
+- 空行会被忽略。
+- 加载时缺少 `key`、缺少 `text` 或重复 `key` 的行会被跳过并写入警告日志。
+- 通过管理窗口保存时，会拒绝空快捷键、空文本和重复快捷键。
 
-## 🔧 技术架构
+## 配置
 
-### 核心组件
+首次运行会自动生成 `settings.ini`。当前可配置项包括：
 
-- **QuickInputApp**: 主应用程序类
-- **GUI界面**: 基于tkinter的现代化界面
-- **热键监听**: 使用pynput监听全局热键
-- **系统托盘**: 使用pystray管理托盘图标
-- **文本输入**: 使用pyautogui模拟键盘输入
+```ini
+[hotkey]
+label = Ctrl+[
+modifiers = 16386
+virtual_key = 219
 
-### 依赖包
+[popup]
+width = 520
+height = 560
 
-- `tkinter`: GUI界面框架
-- `pillow`: 图像处理
-- `pyautogui`: 自动化输入
-- `pywin32`: Windows API调用
-- `pystray`: 系统托盘管理
-- `pynput`: 全局热键监听
+[paste]
+delay_ms = 120
+clipboard_restore_delay_ms = 1000
 
-## 🎨 界面设计
-
-### 颜色方案
-
-- **背景色**: `#2c3e50` (深蓝灰色)
-- **选项背景**: `#34495e` (中性灰色)
-- **悬停色**: `#3498db` (蓝色)
-- **按键标签**: `#e74c3c` (红色)
-- **文字颜色**: `#ecf0f1` (浅灰白色)
-
-### 字体设计
-
-- **主标题**: Segoe UI, 16px, 粗体
-- **副标题**: Segoe UI, 10px, 常规
-- **选项文本**: Segoe UI, 10px, 常规
-
-## 🐛 故障排除
-
-### 常见问题
-
-1. **热键不响应**
-   - 检查是否有其他程序占用了 `Ctrl+[` 热键
-   - 以管理员权限运行程序
-
-2. **弹窗无法获取焦点**
-   - 程序已经自动处理了焦点问题
-   - 如果仍有问题，请重启程序
-
-3. **中文乱码**
-   - 程序已经修复了Windows控制台的中文乱码问题
-   - 确保系统支持UTF-8编码
-
-4. **系统托盘图标不显示**
-   - 检查是否有 `icon.png` 文件
-   - 程序会自动生成默认图标
-
-### 日志查看
-
-程序运行时会输出详细的日志信息，包括：
-- 文本加载状态
-- 热键设置状态
-- 窗口创建和关闭状态
-- 错误和警告信息
-
-## 📁 文件结构
-
-```
-QuickInput/
-├── main.py              # 主程序文件
-├── text.csv             # 文本配置文件
-├── icon.png             # 应用图标
-├── requirements.txt     # 依赖包列表
-├── README.md           # 项目文档
-└── LICENSE             # 许可证文件
+[ui]
+language = zh_CN
 ```
 
-## 🔄 版本历史
+说明：
 
-### v2.0.0 (当前版本)
-- ✨ 全新的现代化界面设计
-- 🔧 重构了代码架构，提高了可维护性
-- 🐛 修复了窗口焦点问题
-- 🌐 修复了中文乱码问题
-- 📝 添加了完整的日志记录
-- 🎨 改进了用户体验
+- `label` 只影响托盘和弹窗里展示的热键文字。
+- `modifiers` 和 `virtual_key` 对应 Windows `RegisterHotKey` 参数。
+- `popup.width` / `popup.height` 最小值为 `360`。
+- `paste.delay_ms` 控制选择短语后延迟粘贴的时间。
+- `paste.clipboard_restore_delay_ms` 控制恢复原剪贴板内容的延迟。
+- `ui.language` 控制界面显示语言，支持 `zh_CN` 和 `en_US`；也可通过托盘菜单的“设置”窗口切换，保存后立即生效。
 
-### v1.0.0 (原始版本)
-- 基本的快速输入功能
-- 简单的GUI界面
-- 热键支持
+## 打包
 
-## 📄 许可证
+推荐发布给普通用户的产物是安装包：
 
-本项目使用 MIT 许可证。详情请参阅 [LICENSE](LICENSE) 文件。
+```bash
+build_installer.bat
+```
 
-## 🤝 贡献指南
+构建成功后生成：
 
-欢迎提交Issue和Pull Request来改进这个项目！
+```text
+dist\QuickInput-1.0.0-setup.exe
+```
 
-### 开发环境设置
+安装器支持 English / 简体中文安装语言选择，并会把所选语言写入用户级 `settings.ini`，应用首次启动时使用对应显示语言。
 
-1. 克隆仓库
-2. 安装依赖: `pip install -r requirements.txt`
-3. 运行程序: `python main.py`
+如果只需要 portable 单文件 EXE，可以运行：
 
-### 代码规范
+```bash
+build.bat
+```
 
-- 使用Python 3.7+语法
-- 遵循PEP 8代码规范
-- 添加适当的注释和文档字符串
-- 测试所有功能
+构建入口固定为 `QuickInput.spec`。构建成功后生成：
 
-## 📞 联系方式
+```text
+dist\QuickInput.exe
+```
 
-如有任何问题，请通过以下方式联系：
+打包说明：
 
-- 提交Issue到GitHub仓库
-- 邮件联系（如有提供）
+- `installer\QuickInput.iss` 是 Windows 安装器脚本，使用 Inno Setup 6 编译。
+- `QuickInput.spec` 会打包 `icon.png`。
+- `QuickInput.spec` 排除了 Tkinter、pystray、pynput、PyQt 等旧实现或未使用依赖。
+- `build.bat` 会安装依赖、运行 PyInstaller，并把 `icon.png` 复制到 `dist`。
+- `build_installer.bat` 会先构建 `QuickInput.exe`，再生成安装包。
+- 默认短语由代码内置初始化，不依赖 `dist\text.csv`。
 
----
+打包后可执行启动烟测：
 
-*让文本输入更加高效！* 🚀 
+```bash
+dist\QuickInput.exe --smoke-test
+```
+
+## 开发验证
+
+单元测试使用标准库 `unittest`：
+
+```bash
+python -m unittest discover -s tests
+```
+
+当前测试覆盖：
+
+- 用户数据目录覆盖和默认短语文件初始化。
+- `settings.ini` 默认生成与读写。
+- 中文/英文显示语言配置。
+- `text.csv` 加载、保存、必要列检查和重复快捷键处理。
+- 文本管理窗口提交当前编辑内容，设置窗口返回当前语言选择。
+
+如果在无桌面环境或 CI 中运行 Qt 相关测试，可设置：
+
+```powershell
+$env:QT_QPA_PLATFORM="offscreen"
+python -m unittest discover -s tests
+```
+
+## 故障排查
+
+- 热键无响应：检查是否有其他程序占用了 `Ctrl+[`，并查看 `logs\app.log` 中的 Windows 错误码。
+- 托盘图标不可见：先检查系统托盘隐藏区域；如果系统未报告可用托盘，日志会写入警告。
+- 粘贴失败：确认目标窗口支持 `Ctrl+V`，并检查剪贴板读写是否被安全软件或目标应用限制。
+- 文本列表为空：检查用户数据目录中的 `text.csv` 是否包含 `key,text` 表头和有效内容。
+- 想重置短语：退出应用后删除 `%APPDATA%\QuickInput\text.csv`，下次启动会重新按初始化顺序生成。
+
+## 维护注意
+
+- 运行期数据以 `%APPDATA%\QuickInput` 为准，源码根目录和 `dist` 目录不再保存初始化模板 `text.csv`。
+- 修改热键或语言默认值时，需要同时更新 `quickinput/settings.py`、`quickinput/i18n.py` 和本文档的配置说明。
+- 修改 CSV 校验规则时，需要同步 `quickinput/phrase_store.py`、管理窗口保存行为和测试用例。
+- 修改打包资源时，需要同步 `QuickInput.spec`、`build.bat` 和本文档的打包说明。
+
+## 许可证
+
+本项目使用 GPL-3.0 许可证，详见 `LICENSE`。
+
+## English Documentation
+
+QuickInput is a Windows tray utility for fast text input. It stays in the background, opens a phrase picker with the global `Ctrl+[` hotkey, and pastes the selected phrase into the current cursor position.
+
+### Features
+
+- Global `Ctrl+[` hotkey to show or hide the quick input popup.
+- System tray menu for showing the popup, managing phrases, changing settings, opening logs, and exiting.
+- In-app phrase manager for adding, deleting, editing, and reordering phrases.
+- In-app settings dialog for switching the UI between Simplified Chinese and English.
+- Number-key phrase selection, mouse selection, wrapped long text, and a scrollable phrase list.
+- Clipboard restore delay that avoids overwriting new clipboard content copied by the user.
+- Windows single-instance guard and file logging under the user data directory.
+
+### Requirements
+
+- Windows
+- Python 3.10+
+
+Development run:
+
+```bash
+python -m pip install -r requirements.txt
+python main.py
+```
+
+Smoke test:
+
+```bash
+python main.py --smoke-test
+```
+
+### User Data
+
+Runtime data is stored outside the source and release folders:
+
+```text
+%APPDATA%\QuickInput\
+  text.csv
+  settings.ini
+  logs\app.log
+```
+
+You can override the data directory for testing:
+
+```powershell
+$env:QUICKINPUT_DATA_DIR="D:\tmp\quickinput-data"
+python main.py
+```
+
+`%APPDATA%\QuickInput\text.csv` is the active phrase file. On first launch, if it does not exist, QuickInput writes the built-in default CSV content. The source root and `dist` folder no longer carry an initialization `text.csv`.
+
+### Phrase Management
+
+Use the tray menu and open `Manage Phrases` for normal editing. Saved changes are applied to the popup immediately.
+
+CSV format:
+
+```csv
+key,text
+1,Hello
+2,"Long text with comma, newline, or other content"
+```
+
+Rules:
+
+- The file must contain `key` and `text` columns.
+- Empty rows are ignored.
+- Rows with missing keys, missing text, or duplicate keys are skipped during loading and written to the log.
+- The phrase manager rejects empty shortcuts, empty text, and duplicate shortcuts before saving.
+
+### Configuration
+
+`settings.ini` is created automatically on first launch:
+
+```ini
+[hotkey]
+label = Ctrl+[
+modifiers = 16386
+virtual_key = 219
+
+[popup]
+width = 520
+height = 560
+
+[paste]
+delay_ms = 120
+clipboard_restore_delay_ms = 1000
+
+[ui]
+language = zh_CN
+```
+
+Notes:
+
+- `label` only changes the hotkey text shown in the tray and popup.
+- `modifiers` and `virtual_key` map to Windows `RegisterHotKey` parameters.
+- `popup.width` and `popup.height` are clamped to at least `360`.
+- `paste.delay_ms` controls the delay before pasting after a phrase is selected.
+- `paste.clipboard_restore_delay_ms` controls when the previous clipboard content is restored.
+- `ui.language` controls the display language. Supported values are `zh_CN` and `en_US`; it can also be changed from the tray `Settings` dialog and applies immediately after saving.
+
+### Build
+
+The recommended asset for normal users is the installer:
+
+```bash
+build_installer.bat
+```
+
+A successful build creates:
+
+```text
+dist\QuickInput-1.0.0-setup.exe
+```
+
+The installer supports English and Simplified Chinese setup languages. It writes the selected language to the user-level `settings.ini`, so the app starts in the chosen display language.
+
+For a portable single-file executable, run:
+
+```bash
+build.bat
+```
+
+The PyInstaller entrypoint is `QuickInput.spec`. A successful build creates:
+
+```text
+dist\QuickInput.exe
+```
+
+Build notes:
+
+- `installer\QuickInput.iss` is the Windows installer script and is compiled with Inno Setup 6.
+- `QuickInput.spec` packages `icon.png`.
+- `QuickInput.spec` excludes old or unused UI/input dependencies such as Tkinter, pystray, pynput, and PyQt.
+- `build.bat` installs dependencies, runs PyInstaller, and copies `icon.png` to `dist`.
+- `build_installer.bat` builds `QuickInput.exe` first, then creates the setup package.
+- Default phrases are initialized from built-in code, not from `dist\text.csv`.
+
+Packaged smoke test:
+
+```bash
+dist\QuickInput.exe --smoke-test
+```
+
+### Testing
+
+Unit tests use the standard `unittest` runner:
+
+```bash
+python -m unittest discover -s tests
+```
+
+For headless or CI environments:
+
+```powershell
+$env:QT_QPA_PLATFORM="offscreen"
+python -m unittest discover -s tests
+```
+
+### Troubleshooting
+
+- Hotkey does not work: check whether another application is using `Ctrl+[` and inspect `logs\app.log`.
+- Tray icon is not visible: check the hidden tray area first; QuickInput logs a warning if the system tray is unavailable.
+- Paste fails: confirm the target app accepts `Ctrl+V` and that clipboard access is not blocked by security software.
+- Phrase list is empty: check whether `%APPDATA%\QuickInput\text.csv` has the `key,text` header and valid rows.
+- Reset phrases: exit QuickInput, delete `%APPDATA%\QuickInput\text.csv`, then launch the app again.
+
+### License
+
+This project is licensed under GPL-3.0. See `LICENSE`.

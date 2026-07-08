@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QuickInput Elegant UI Prototype</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef3f1;
+      --bg-warm: #f4f1ec;
+      --surface: rgba(255, 255, 255, 0.78);
+      --surface-strong: #ffffff;
+      --surface-muted: #f7faf9;
+      --text: #172026;
+      --text-soft: #4f5f68;
+      --text-muted: #82909a;
+      --line: rgba(34, 51, 59, 0.12);
+      --line-strong: rgba(34, 51, 59, 0.2);
+      --accent: #0f8f86;
+      --accent-strong: #08746d;
+      --accent-soft: #e1f5f2;
+      --success: #2f8d58;
+      --success-soft: #e8f5ee;
+      --danger: #c45548;
+      --danger-soft: #fff0ed;
+      --amber: #b6842f;
+      --shadow-lg: 0 28px 70px rgba(20, 35, 42, 0.18), 0 12px 28px rgba(20, 35, 42, 0.11);
+      --shadow-md: 0 16px 38px rgba(20, 35, 42, 0.14), 0 6px 18px rgba(20, 35, 42, 0.08);
+      --shadow-sm: 0 8px 20px rgba(20, 35, 42, 0.08);
+      --radius-window: 18px;
+      --radius-panel: 12px;
+      --radius-control: 8px;
+      --font: "Microsoft YaHei UI", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      --motion-show: 160ms;
+      --motion-hide: 120ms;
+      --ease-out: cubic-bezier(.16, 1, .3, 1);
+      --ease-in: cubic-bezier(.45, 0, 1, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 1180px;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        linear-gradient(135deg, #fbfcfb 0%, var(--bg) 52%, var(--bg-warm) 100%);
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .page {
+      width: min(1500px, calc(100vw - 48px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      height: 58px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 280px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(145deg, #163438, #0c7c74);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(15, 143, 134, 0.24);
+    }
+
+    .brand-title {
+      display: grid;
+      gap: 1px;
+    }
+
+    .brand-title strong {
+      font-size: 18px;
+      line-height: 22px;
+      font-weight: 750;
+    }
+
+    .brand-title span {
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .segmented {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .segmented button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 34px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .segmented button.active {
+      background: var(--surface-strong);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-button,
+    .text-button {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--text);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      padding: 0;
+    }
+
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .text-button.primary {
+      border-color: rgba(15, 143, 134, 0.28);
+      background: #0f8f86;
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(15, 143, 134, 0.22);
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(610px, 1fr) 430px;
+      gap: 26px;
+      align-items: start;
+    }
+
+    .canvas {
+      position: relative;
+      min-height: 700px;
+      padding: 44px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.48)),
+        repeating-linear-gradient(90deg, rgba(23, 32, 38, 0.035) 0 1px, transparent 1px 56px),
+        repeating-linear-gradient(0deg, rgba(23, 32, 38, 0.03) 0 1px, transparent 1px 56px);
+      box-shadow: 0 28px 80px rgba(23, 32, 38, 0.12);
+      overflow: hidden;
+    }
+
+    .desktop-shadow {
+      position: absolute;
+      inset: auto 78px 56px 78px;
+      height: 90px;
+      border-radius: 50%;
+      background: rgba(20, 35, 42, 0.12);
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .popup-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 610px;
+    }
+
+    .phrase-popup {
+      width: 520px;
+      height: 560px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-window);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.91), rgba(247, 251, 250, 0.84)),
+        var(--surface);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      transform-origin: 50% 46%;
+      transition:
+        opacity var(--motion-show) var(--ease-out),
+        transform var(--motion-show) var(--ease-out),
+        filter var(--motion-show) var(--ease-out);
+    }
+
+    .phrase-popup.is-hidden {
+      opacity: 0;
+      transform: translateY(18px) scale(.965);
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .phrase-popup.is-closing {
+      opacity: 0;
+      transform: translateY(-8px) scale(.985);
+      filter: blur(2px);
+      transition-duration: var(--motion-hide);
+      transition-timing-function: var(--ease-in);
+      pointer-events: none;
+    }
+
+    .popup-inner {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 22px 22px 18px;
+      gap: 14px;
+    }
+
+    .popup-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .title-stack {
+      display: grid;
+      gap: 4px;
+    }
+
+    .title-stack h1,
+    .manager-title h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: 24px;
+      line-height: 30px;
+      font-weight: 780;
+    }
+
+    .title-stack p,
+    .manager-title p {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .hotkey {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 68px;
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 10px;
+      background: #172026;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 760;
+      box-shadow: 0 12px 26px rgba(23, 32, 38, 0.22);
+    }
+
+    .status-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 38px;
+      padding: 0 10px 0 12px;
+      border: 1px solid rgba(15, 143, 134, 0.16);
+      border-radius: 11px;
+      background: rgba(225, 245, 242, 0.62);
+      color: var(--accent-strong);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .status-strip span:last-child {
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .phrase-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      min-height: 0;
+      padding-right: 4px;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(23, 32, 38, 0.22) transparent;
+    }
+
+    .phrase-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 22px;
+      align-items: center;
+      gap: 13px;
+      min-height: 56px;
+      padding: 10px 12px 10px 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+      transition:
+        transform 110ms var(--ease-out),
+        background 110ms var(--ease-out),
+        border-color 110ms var(--ease-out),
+        box-shadow 110ms var(--ease-out);
+      opacity: 0;
+      transform: translateY(8px);
+      animation: row-in 180ms var(--ease-out) forwards;
+      animation-delay: calc(var(--i) * 22ms + 60ms);
+    }
+
+    .phrase-row:hover,
+    .phrase-row.is-hover {
+      transform: translateY(-1px);
+      border-color: rgba(15, 143, 134, 0.36);
+      background: #f3fbfa;
+      box-shadow: 0 12px 26px rgba(15, 143, 134, 0.09);
+    }
+
+    .phrase-row.is-selected {
+      border-color: rgba(15, 143, 134, 0.52);
+      background: linear-gradient(180deg, #f2fbfa, #ffffff);
+      box-shadow: inset 3px 0 0 var(--accent), 0 13px 30px rgba(15, 143, 134, 0.12);
+    }
+
+    .key-badge {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-size: 14px;
+      font-weight: 800;
+      border: 1px solid rgba(15, 143, 134, 0.18);
+    }
+
+    .phrase-row.is-selected .key-badge {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .phrase-text {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .phrase-text strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      line-height: 18px;
+      font-weight: 720;
+    }
+
+    .phrase-text small {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-soft);
+      font-size: 11px;
+      line-height: 15px;
+    }
+
+    .row-caret {
+      color: var(--text-muted);
+    }
+
+    .popup-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 28px;
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .mini-keys {
+      display: flex;
+      gap: 4px;
+    }
+
+    .mini-keys span {
+      display: grid;
+      place-items: center;
+      min-width: 24px;
+      height: 22px;
+      padding: 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text-soft);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: 0 20px 54px rgba(23, 32, 38, 0.1);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid rgba(34, 51, 59, 0.08);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 760;
+    }
+
+    .panel-head span {
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .motion-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .motion-card {
+      position: relative;
+      min-height: 130px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(248, 251, 250, 0.78);
+      overflow: hidden;
+    }
+
+    .motion-card strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 750;
+    }
+
+    .motion-card span {
+      display: block;
+      color: var(--text-soft);
+      font-size: 11px;
+      line-height: 15px;
+    }
+
+    .motion-mini {
+      position: absolute;
+      left: 18px;
+      bottom: 16px;
+      width: 126px;
+      height: 70px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 13px;
+      background: linear-gradient(180deg, #fff, #f5faf8);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .motion-mini.hidden {
+      opacity: .22;
+      transform: translateY(14px) scale(.92);
+      filter: blur(1px);
+    }
+
+    .motion-mini.entering {
+      opacity: .72;
+      transform: translateY(6px) scale(.98);
+    }
+
+    .motion-mini.visible {
+      opacity: 1;
+    }
+
+    .motion-mini.closing {
+      opacity: .44;
+      transform: translateY(-6px) scale(.985);
+      filter: blur(.6px);
+    }
+
+    .spec-list {
+      display: grid;
+      gap: 10px;
+      padding: 16px 18px 18px;
+      margin: 0;
+      list-style: none;
+    }
+
+    .spec-list li {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 12px;
+      align-items: baseline;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .spec-list b {
+      color: var(--text);
+      font-weight: 750;
+    }
+
+    .spec-list span {
+      color: var(--text-soft);
+    }
+
+    .manager-section {
+      margin-top: 28px;
+      padding: 44px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.52);
+      box-shadow: 0 28px 80px rgba(23, 32, 38, 0.1);
+    }
+
+    .manager-window {
+      width: 860px;
+      min-height: 560px;
+      margin: 0 auto;
+      padding: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-window);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 249, 0.88));
+      box-shadow: var(--shadow-md);
+    }
+
+    .manager-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .count-badge {
+      min-width: 50px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: #172026;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 760;
+      box-shadow: 0 12px 26px rgba(23, 32, 38, 0.18);
+    }
+
+    .manager-body {
+      display: grid;
+      grid-template-columns: 292px 1fr;
+      gap: 16px;
+    }
+
+    .manager-card {
+      min-height: 456px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      overflow: hidden;
+    }
+
+    .manager-card-inner {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 14px;
+      gap: 12px;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 26px;
+    }
+
+    .card-title strong {
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 760;
+    }
+
+    .card-title small {
+      color: var(--text-soft);
+      font-size: 11px;
+    }
+
+    .manager-list {
+      display: grid;
+      gap: 6px;
+      min-height: 0;
+      flex: 1;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-muted);
+    }
+
+    .manager-item {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 6px 8px;
+      border-radius: 9px;
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .manager-item.selected {
+      background: #fff;
+      color: var(--text);
+      box-shadow: inset 3px 0 0 var(--accent), 0 8px 18px rgba(20, 35, 42, 0.08);
+    }
+
+    .manager-item b {
+      display: grid;
+      place-items: center;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-size: 12px;
+    }
+
+    .manager-item span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .manager-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .small-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    }
+
+    .small-button.primary {
+      border-color: rgba(15, 143, 134, 0.26);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .small-button.danger {
+      color: var(--danger);
+    }
+
+    .editor-form {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 720;
+    }
+
+    .key-input,
+    .text-area {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: #f8fbfa;
+      color: var(--text);
+      outline: none;
+      transition:
+        border-color 120ms var(--ease-out),
+        box-shadow 120ms var(--ease-out),
+        background 120ms var(--ease-out);
+    }
+
+    .key-input {
+      height: 38px;
+      padding: 0 12px;
+    }
+
+    .text-area {
+      min-height: 232px;
+      padding: 12px;
+      resize: none;
+      line-height: 20px;
+    }
+
+    .key-input:focus,
+    .text-area:focus {
+      border-color: rgba(15, 143, 134, 0.58);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(15, 143, 134, 0.12);
+    }
+
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .helper {
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .footer-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .save-button,
+    .cancel-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .save-button {
+      border: 1px solid rgba(15, 143, 134, 0.24);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(15, 143, 134, 0.18);
+    }
+
+    .cancel-button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text-soft);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid rgba(47, 141, 88, 0.22);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--success);
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translate(-50%, 12px);
+      pointer-events: none;
+      transition: opacity 140ms var(--ease-out), transform 140ms var(--ease-out);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes row-in {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 8.5h12M6 12h8M6 15.5h10"/><path d="M4.75 5.5h14.5v13H4.75z"/></svg>
+        </div>
+        <div class="brand-title">
+          <strong>QuickInput UI</strong>
+          <span>弹窗、短语管理、显示与消失动效设计</span>
+        </div>
+      </div>
+
+      <div class="segmented" aria-label="视图切换">
+        <button class="active" type="button" data-jump="popup">
+          <svg viewBox="0 0 24 24"><path d="M5 6h14v10H9l-4 3z"/></svg>
+          弹窗
+        </button>
+        <button type="button" data-jump="motion">
+          <svg viewBox="0 0 24 24"><path d="M4 12h10"/><path d="m11 8 4 4-4 4"/><path d="M18 6v12"/></svg>
+          动效
+        </button>
+        <button type="button" data-jump="manager">
+          <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/><path d="M8 7v0M8 12v0M8 17v0"/></svg>
+          管理窗口
+        </button>
+      </div>
+
+      <div class="action-row">
+        <button class="icon-button" type="button" id="resetRows" title="重置选中项" aria-label="重置选中项">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M18 3v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M6 21v-5h5"/></svg>
+        </button>
+        <button class="text-button primary" type="button" id="togglePopup">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+          显示/隐藏
+        </button>
+      </div>
+    </header>
+
+    <section class="stage" id="popup">
+      <div class="canvas">
+        <div class="desktop-shadow"></div>
+        <div class="popup-wrap">
+          <section class="phrase-popup" id="phrasePopup" aria-label="QuickInput 短语弹窗">
+            <div class="popup-inner">
+              <header class="popup-head">
+                <div class="title-stack">
+                  <h1>QuickInput</h1>
+                  <p>选择短语后自动粘贴到当前光标</p>
+                </div>
+                <div class="hotkey">Ctrl+[</div>
+              </header>
+
+              <div class="status-strip" id="popupStatus">
+                <span>就绪</span>
+                <span>9 条文本</span>
+              </div>
+
+              <div class="phrase-list" aria-label="短语列表">
+                <button class="phrase-row is-selected" type="button" style="--i:0" data-key="1">
+                  <span class="key-badge">1</span>
+                  <span class="phrase-text">
+                    <strong>欢迎访问我们的网站。</strong>
+                    <small>Welcome to our website.</small>
+                  </span>
+                  <span class="row-caret"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <button class="phrase-row is-hover" type="button" style="--i:1" data-key="2">
+                  <span class="key-badge">2</span>
+                  <span class="phrase-text">
+                    <strong>感谢你的来访。</strong>
+                    <small>Thank you for your visit.</small>
+                  </span>
+                  <span class="row-caret"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <button class="phrase-row" type="button" style="--i:2" data-key="3">
+                  <span class="key-badge">3</span>
+                  <span class="phrase-text">
+                    <strong>请通过 contact@example.com 联系我们。</strong>
+                    <small>Please contact us at contact@example.com.</small>
+                  </span>
+                  <span class="row-caret"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <button class="phrase-row" type="button" style="--i:3" data-key="4">
+                  <span class="key-badge">4</span>
+                  <span class="phrase-text">
+                    <strong>查看我们的最新博客文章。</strong>
+                    <small>Check out our latest blog post.</small>
+                  </span>
+                  <span class="row-caret"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <button class="phrase-row" type="button" style="--i:4" data-key="5">
+                  <span class="key-badge">5</span>
+                  <span class="phrase-text">
+                    <strong>订阅我们的新闻通讯以获取更新。</strong>
+                    <small>Subscribe to our newsletter for updates.</small>
+                  </span>
+                  <span class="row-caret"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+                <button class="phrase-row" type="button" style="--i:5" data-key="6">
+                  <span class="key-badge">6</span>
+                  <span class="phrase-text">
+                    <strong>了解更多服务内容。</strong>
+                    <small>Learn more about our services here.</small>
+                  </span>
+                  <span class="row-caret"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+                </button>
+              </div>
+
+              <footer class="popup-foot">
+                <span>数字键选择，Esc 关闭</span>
+                <span class="mini-keys" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>Esc</span></span>
+              </footer>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <aside class="side" id="motion">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>显示/消失分镜</h2>
+            <span>Qt 可实现参数</span>
+          </div>
+          <div class="motion-grid">
+            <article class="motion-card">
+              <strong>Hidden</strong>
+              <span>opacity 0, y +18, scale .965</span>
+              <div class="motion-mini hidden"></div>
+            </article>
+            <article class="motion-card">
+              <strong>Entering</strong>
+              <span>0-90ms, 去模糊并上浮</span>
+              <div class="motion-mini entering"></div>
+            </article>
+            <article class="motion-card">
+              <strong>Visible</strong>
+              <span>160ms 完成，行项目错峰</span>
+              <div class="motion-mini visible"></div>
+            </article>
+            <article class="motion-card">
+              <strong>Closing</strong>
+              <span>120ms, y -8, scale .985</span>
+              <div class="motion-mini closing"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>视觉规则</h2>
+            <span>迁移到 PySide6</span>
+          </div>
+          <ul class="spec-list">
+            <li><b>窗口</b><span>520 x 560，18px 圆角，白色半透明表面，双层柔和阴影。</span></li>
+            <li><b>密度</b><span>行高 56px，列表间距 9px，键帽 38 x 34，适合键盘快速扫读。</span></li>
+            <li><b>强调</b><span>选中行使用左侧 3px teal 指示条，hover 只轻微上浮。</span></li>
+            <li><b>动效</b><span>显示 OutCubic 160ms，隐藏 InCubic 120ms，减少运动时改为淡入淡出。</span></li>
+            <li><b>反馈</b><span>选择后状态条切换为“正在粘贴”，随后窗口优雅收起。</span></li>
+          </ul>
+        </section>
+      </aside>
+    </section>
+
+    <section class="manager-section" id="manager">
+      <section class="manager-window" aria-label="短语管理窗口">
+        <header class="manager-head">
+          <div class="manager-title">
+            <h2>短语管理</h2>
+            <p>维护数字快捷键和对应文本，保存后立即同步到弹窗。</p>
+          </div>
+          <span class="count-badge">9 条</span>
+        </header>
+
+        <div class="manager-body">
+          <aside class="manager-card">
+            <div class="manager-card-inner">
+              <div class="card-title">
+                <strong>短语列表</strong>
+                <small>按粘贴频率排序</small>
+              </div>
+              <div class="manager-list">
+                <div class="manager-item selected"><b>1</b><span>欢迎访问我们的网站。</span></div>
+                <div class="manager-item"><b>2</b><span>感谢你的来访。</span></div>
+                <div class="manager-item"><b>3</b><span>请通过 contact@example.com 联系我们。</span></div>
+                <div class="manager-item"><b>4</b><span>查看我们的最新博客文章。</span></div>
+                <div class="manager-item"><b>5</b><span>订阅我们的新闻通讯以获取更新。</span></div>
+                <div class="manager-item"><b>6</b><span>了解更多服务内容。</span></div>
+              </div>
+              <div class="manager-actions">
+                <button class="small-button primary" type="button">新增</button>
+                <button class="small-button danger" type="button">删除</button>
+                <button class="small-button" type="button">上移</button>
+                <button class="small-button" type="button">下移</button>
+              </div>
+            </div>
+          </aside>
+
+          <section class="manager-card">
+            <div class="manager-card-inner">
+              <div class="card-title">
+                <strong>编辑内容</strong>
+                <small>纯文本保存</small>
+              </div>
+              <form class="editor-form">
+                <div class="field">
+                  <label for="keyInput">快捷键</label>
+                  <input class="key-input" id="keyInput" value="1" maxlength="8">
+                </div>
+                <div class="field">
+                  <label for="phraseText">文本内容</label>
+                </div>
+                <textarea class="text-area" id="phraseText">欢迎访问我们的网站。</textarea>
+                <div class="form-footer">
+                  <span class="helper">重复快捷键和空文本会在保存时提示。</span>
+                  <div class="footer-buttons">
+                    <button class="cancel-button" type="button">取消</button>
+                    <button class="save-button" type="button">
+                      <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                      保存
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+    已选择短语，窗口正在收起
+  </div>
+
+  <script>
+    const popup = document.querySelector("#phrasePopup");
+    const toggle = document.querySelector("#togglePopup");
+    const rows = Array.from(document.querySelectorAll(".phrase-row"));
+    const status = document.querySelector("#popupStatus span:first-child");
+    const toast = document.querySelector("#toast");
+    const resetRows = document.querySelector("#resetRows");
+
+    function showPopup() {
+      popup.classList.remove("is-hidden", "is-closing");
+      status.textContent = "就绪";
+      rows.forEach((row, index) => {
+        row.style.animation = "none";
+        window.requestAnimationFrame(() => {
+          row.style.animation = `row-in 180ms var(--ease-out) forwards`;
+          row.style.animationDelay = `${index * 22 + 60}ms`;
+        });
+      });
+    }
+
+    function hidePopup() {
+      popup.classList.remove("is-hidden");
+      popup.classList.add("is-closing");
+      window.setTimeout(() => {
+        popup.classList.remove("is-closing");
+        popup.classList.add("is-hidden");
+      }, 125);
+    }
+
+    function flashToast() {
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    toggle.addEventListener("click", () => {
+      if (popup.classList.contains("is-hidden") || popup.classList.contains("is-closing")) {
+        showPopup();
+      } else {
+        hidePopup();
+      }
+    });
+
+    rows.forEach((row) => {
+      row.addEventListener("click", () => {
+        rows.forEach((item) => item.classList.remove("is-selected", "is-hover"));
+        row.classList.add("is-selected");
+        status.textContent = "正在粘贴";
+        flashToast();
+        window.setTimeout(hidePopup, 180);
+      });
+    });
+
+    resetRows.addEventListener("click", () => {
+      rows.forEach((item) => item.classList.remove("is-selected", "is-hover"));
+      rows[0].classList.add("is-selected");
+      rows[1].classList.add("is-hover");
+      showPopup();
+    });
+
+    document.querySelectorAll("[data-jump]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-jump]").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        const target = document.querySelector(`#${button.dataset.jump}`);
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        hidePopup();
+      }
+      if (/^[1-9]$/.test(event.key)) {
+        const target = rows.find((row) => row.dataset.key === event.key);
+        target?.click();
+      }
+    });
+  </script>
+</body>
+</html>
